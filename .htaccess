@@ -1,0 +1,8 @@
+# Deny access to everything by default
+Order Deny,Allow
+Deny from all
+
+# Allow access to html files
+<Files public/*>
+    Allow from all
+</Files>

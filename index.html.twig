@@ -1,0 +1,27 @@
+<!doctype html>
+<html>
+<head>
+    <title>No one reads the title</title>
+</head>
+<body>
+
+<a href="/">HOME</a> :: <a href="/index.php?s=404">Why?</a> :: {{ "l, d.m.Y"|date_i18n }}
+
+<hr>
+
+{% block foo %}
+    <p>
+        {{ david }}: Knock knock. <br>
+        {{ who }}: Who's there? <br>
+        {{ david }}: Me <br>
+        {{ who }}: Who? <br>
+        {{ david }}: Correct
+    </p>
+{% endblock %}
+
+<hr>
+
+&copy; {{ date_i18n('Y') }}
+
+</body>
+</html>

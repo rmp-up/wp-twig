@@ -1,0 +1,12 @@
+{
+  "name": "rmp/wp-twig",
+  "license": "proprietary",
+  "require": {
+    "twig/twig": "~2"
+  },
+  "autoload": {
+    "classmap": [
+      "includes"
+    ]
+  }
+}
