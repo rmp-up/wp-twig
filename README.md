@@ -2,10 +2,10 @@
 
 > WordPress with Twig on budget.
 
-This overrides the dispatching of PHP files
-and replaces it by parsing Twig files.
-Data can be injected using special filter
-or by manipulating `$wp_query->query_vars` .
+* Make WordPress use ".php" and ".html.twig" theme templates
+* Split model from view by using filters or `$wp_query`
+* Inherit from multiple themes instead of just one parent
+
 
 <table>
     <tr>
@@ -16,7 +16,6 @@ or by manipulating `$wp_query->query_vars` .
         <td>
             <ul>
                 <li>404.php</li>
-                <li>index.php</li>
                 <li>search.php</li>
                 <li>single-cpt-foo.php</li>
                 <li>...</li>
@@ -25,7 +24,6 @@ or by manipulating `$wp_query->query_vars` .
         <td>
             <ul>
                 <li>404.html.twig</li>
-                <li>index.html.twig</li>
                 <li>search.html.twig</li>
                 <li>single-cpt-foo.html.twig</li>
                 <li>...</li>
@@ -34,8 +32,25 @@ or by manipulating `$wp_query->query_vars` .
     </tr>
 </table>
 
-**Why ".html.twig" instead of ".twig" only?** <br>
-Because this way Twig magically handles escaping.
+
+## Installation / Usage
+
+Require via composer:
+
+```bash
+composer require rmp-up/wp-twig
+```
+
+And add to your "functions.php" or elsewhere:
+
+```php
+<?php
+
+wp_twig_register();
+```
+
+This function exists when composer's autoload.php is used.
+From now on WordPress uses ".php" and ".html.twig" templates.
 
 
 ## Templating / How Twig works

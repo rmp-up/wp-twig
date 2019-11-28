@@ -1,12 +1,14 @@
 {
-  "name": "rmp/wp-twig",
+  "name": "rmp-up/wp-twig",
   "license": "proprietary",
   "require": {
     "twig/twig": "~2"
   },
   "autoload": {
-    "classmap": [
-      "includes"
+    "files": [
+      "includes/internals.php",
+      "includes/functions.php",
+      "includes/wp-hooks.php"
     ]
   }
 }

@@ -1,8 +1,10 @@
 <?php
 
-if ( ! isset( $wp_twig_current ) ) {
-	$wp_twig_current = null;
-}
+use Twig\Environment;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
+use Twig\Loader\FilesystemLoader;
 
 if ( ! defined( 'WP_TWIG_CACHE_PATH' ) ) {
 	define( 'WP_TWIG_CACHE_PATH', WP_CONTENT_DIR . '/wp-twig-cache' );
@@ -14,14 +16,14 @@ if ( ! function_exists( 'wp_twig_template_override' ) ) {
 	 *
 	 * @param Twig_TemplateWrapper $template
 	 * @param string               $type
-	 * @param                      $templates
+	 * @param array                $templates
 	 *
 	 * @return string
 	 * @see \get_query_template
 	 */
 	function wp_twig_template_override( $template, $type, $templates ) {
 		// lookup twig
-		foreach ( $templates as $current_template ) {
+		foreach ( (array) $templates as $current_template ) {
 			$twig_name = basename( $current_template, '.php' ) . '.html.twig';
 			$twig_path = locate_template( $twig_name );
 
@@ -42,14 +44,14 @@ if ( ! function_exists( 'wp_twig_dispatch_override' ) ) {
 	 * @param $template
 	 *
 	 * @return string
-	 * @throws Twig_Error_Loader
-	 * @throws Twig_Error_Runtime
-	 * @throws Twig_Error_Syntax
+	 * @throws LoaderError
+	 * @throws RuntimeError
+	 * @throws SyntaxError
 	 */
 	function wp_twig_dispatch_override( $template ) {
 		if ( '.twig' === substr( $template, - 5 ) ) {
 			$theme_path = WP_CONTENT_DIR . '/themes/';
-			$loader     = new \Twig\Loader\FilesystemLoader( $theme_path );
+			$loader     = new FilesystemLoader( $theme_path );
 
 			/**
 			 * Change the environment options
@@ -58,7 +60,7 @@ if ( ! function_exists( 'wp_twig_dispatch_override' ) ) {
 			 */
 			$options = apply_filters( 'wp_twig_environment_options', [] );
 
-			$twig = new \Twig\Environment( $loader, $options );
+			$twig = new Environment( $loader, $options );
 			do_action( 'wp_twig_environment', $twig );
 
 			global $wp_twig_current;
@@ -75,13 +77,13 @@ if ( ! function_exists( 'wp_twig_render' ) ) {
 	/**
 	 * The dispatcher renders the template then
 	 *
-	 * @param Twig_TemplateWrapper $template
+	 * @param Twig\TemplateWrapper $template
 	 * @param array                $context
 	 *
 	 * @return string
-	 * @throws \RuntimeException
+	 * @throws RuntimeException
 	 */
-	function wp_twig_render( Twig_TemplateWrapper $template, array $context = [] ): string {
+	function wp_twig_render( Twig\TemplateWrapper $template, array $context = [] ): string {
 		$pre = apply_filters( 'wp_twig_render_pre', null, $template, $context );
 
 		if ( is_string( $pre ) ) {
@@ -99,7 +101,7 @@ if ( ! function_exists( 'wp_twig_render' ) ) {
 		if ( false === $content ) {
 			// Twig does not catch when ob_get_clean returns false.
 			// We show the very last error because OB often eats up exception messages and error output.
-			throw new \RuntimeException(
+			throw new RuntimeException(
 				sprintf(
 					'Problem while rendering "%s". Most recent known problem: %s',
 					$source_name,
@@ -144,98 +146,4 @@ if ( ! function_exists( 'wp_twig_context' ) ) {
 
 		return apply_filters( 'wp_twig_context', $context );
 	}
-}
-
-function _wp_twig_current() {
-	global $wp_twig_current;
-
-	return $wp_twig_current;
-}
-
-/**
- * @param null $dir
- *
- * @internal
- */
-function _wp_twig_clean_cache( $dir = null ) {
-	if ( null === $dir ) {
-		$dir = WP_TWIG_CACHE_PATH;
-	}
-
-	foreach ( glob( $dir . '/*', GLOB_NOSORT ) as $path ) {
-		if ( $path !== $dir && is_dir( $path ) ) {
-			_wp_twig_clean_cache( $path );
-			continue;
-		}
-
-		unlink( $path );
-	}
-
-	if ( WP_TWIG_CACHE_PATH !== $dir && is_dir( $dir ) ) {
-		rmdir( $dir );
-	}
-}
-
-/**
- * @param array $options
- *
- * @return array
- * @internal
- */
-function _wp_twig_env_options( array $options ) {
-	if ( defined( 'WP_CACHE' ) && WP_CACHE ) {
-		$options['cache'] = WP_TWIG_CACHE_PATH;
-	}
-
-	if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-		$options['debug'] = true;
-	}
-
-	if ( defined( 'CONCATENATE_SCRIPTS' ) && ! CONCATENATE_SCRIPTS ) {
-		$options['optimizations'] = 0;
-	}
-
-	return $options;
-}
-
-function _wp_twig_env_add_translations_filter( \Twig\Environment $environment ) {
-	$environment->addFilter(
-		new Twig_Filter(
-			'i18n',
-			static function ( $text, $domain ) {
-				return __( $text, $domain );
-			}
-		)
-	);
-}
-
-function _wp_twig_env_generic_delegate( \Twig\Environment $environment ) {
-	$environment->registerUndefinedFilterCallback( '_wp_twig_generic_delegate_filter' );
-	$environment->registerUndefinedFunctionCallback( '_wp_twig_generic_delegate_function' );
-}
-
-function _wp_twig_generic_delegate_filter( $name ) {
-	if ( function_exists( $name ) ) {
-		return new Twig_Filter(
-			$name,
-			static function () use ( $name ) {
-				return call_user_func_array( $name, func_get_args() );
-			}
-		);
-	}
-
-	throw new \RuntimeException( sprintf( 'Filter %s not found', $name ) );
-}
-
-function _wp_twig_generic_delegate_function( $name ) {
-	if ( function_exists( $name ) ) {
-		return new Twig_SimpleFunction(
-			$name,
-			static function () use ( $name ) {
-				return call_user_func_array( $name, func_get_args() );
-			}
-		);
-	}
-
-	throw new \RuntimeException( sprintf( 'Filter %s not found', $name ) );
 }
