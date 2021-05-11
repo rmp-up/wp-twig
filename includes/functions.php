@@ -6,10 +6,6 @@ use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
 use Twig\Loader\FilesystemLoader;
 
-if ( ! defined( 'WP_TWIG_CACHE_PATH' ) ) {
-	define( 'WP_TWIG_CACHE_PATH', WP_CONTENT_DIR . '/wp-twig-cache' );
-}
-
 if ( ! function_exists( 'wp_twig_template_override' ) ) {
 	/**
 	 * First override query templates with Twig-Template

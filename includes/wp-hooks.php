@@ -53,6 +53,10 @@ function _wp_twig_register_cache_flush() {
  * Register Twig capability in WordPress
  */
 function wp_twig_register() {
+	if ( ! defined( 'WP_TWIG_CACHE_PATH' ) ) {
+		define( 'WP_TWIG_CACHE_PATH', WP_CONTENT_DIR . '/wp-twig-cache' );
+	}
+
 	_wp_twig_register_template_override();
 	_wp_twig_register_twig();
 	_wp_twig_register_cache_flush();
