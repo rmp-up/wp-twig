@@ -107,12 +107,7 @@ if ( ! function_exists( 'wp_twig_render' ) ) {
 		}
 
 		// Cast to string as ob_get_clean could return false
-		return (string) $template->render(
-			array_merge(
-				$context,
-				wp_twig_context( $template->getSourceContext()->getName(), $template->getBlockNames() )
-			)
-		);
+		return (string) $content;
 	}
 }
 
