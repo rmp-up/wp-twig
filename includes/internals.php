@@ -67,7 +67,13 @@ function _wp_twig_env_generic_delegate( Environment $environment ) {
 function _wp_twig_generic_delegate_target( $name ) {
 	if ( function_exists( $name ) ) {
 		return static function () use ( $name ) {
-			return call_user_func_array( $name, func_get_args() );
+			$level = ob_get_level();
+			$returnValue = call_user_func_array( $name, func_get_args() );
+			while (ob_get_level() > $level) {
+				ob_end_flush();
+			}
+
+			return $returnValue;
 		};
 	}
 
